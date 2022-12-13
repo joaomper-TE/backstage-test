@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ignored
+spec:
+  template:
+    spec:
+      nodeSelector:
+        asg: "${{ values.aws_auto_scaling_group }}"
+      tolerations:
+      - key: "asg"
+        operator: "Equal"
+        value: "${{ values.aws_auto_scaling_group }}"
+        effect: "NoSchedule"

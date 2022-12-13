@@ -1,0 +1,81 @@
+pipeline {
+    agent {
+        kubernetes {
+          label currentBuild.fullProjectName.replace('/', '-').toLowerCase()
+          defaultContainer 'spring-boot-builder'
+          idleMinutes 10
+          yamlFile 'build-pod.yaml'
+        }
+    }
+
+    environment {
+        COMMON_FLAGS = "--scan"
+    }
+
+    stages {
+        //
+        // build on PR
+        //
+        stage('PR') {
+            when { changeRequest() }
+            steps {
+                withGradle {
+                    sh './gradlew ${COMMON_FLAGS} clean check'
+                }
+            }
+            post {
+                always {
+                    // fix for https://issues.jenkins-ci.org/browse/JENKINS-6268
+                    sh 'find . -name "TEST-*.xml" -exec touch {} \\;'
+                    sh 'find . -name "test-results.xml" -exec touch {} \\;'
+
+                    // collect unit test results
+                    junit '**/build/test-results/**/*.xml'
+                }
+            }
+        }
+
+        //
+        // build / check on merge to 'main'
+        //
+        stage('Main (STG)') {
+            when { branch 'main' }
+            steps {
+                withGradle {
+                    sh './gradlew ${COMMON_FLAGS} clean check publish'
+                }
+            }
+            post {
+                always {
+                    // fix for https://issues.jenkins-ci.org/browse/JENKINS-6268
+                    sh 'find . -name "TEST-*.xml" -exec touch {} \\;'
+                    sh 'find . -name "test-results.xml" -exec touch {} \\;'
+
+                    // collect unit test results
+                    junit '**/build/test-results/**/*.xml'
+                }
+            }
+        }
+
+        //
+        // build / check on tagging (Prod build)
+        //
+        stage('Tag (PROD)') {
+            // triggered when tag matches pattern
+            when { tag pattern: '\\d+.\\d+.\\d+.\\d+', comparator: 'REGEXP' }
+            steps {
+                echo '### building tag: ${TAG_NAME}'
+                sh 'git describe --all'
+                withGradle {
+                    sh './gradlew ${COMMON_FLAGS} clean check publish'
+                }
+            }
+        }
+    }
+
+    options {
+        timeout(time: 60, unit: 'MINUTES')
+        parallelsAlwaysFailFast()
+        disableConcurrentBuilds()
+    }
+}

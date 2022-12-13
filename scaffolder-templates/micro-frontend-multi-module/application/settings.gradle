@@ -1,0 +1,17 @@
+
+pluginManagement {
+    repositories {
+        maven {
+            allowInsecureProtocol = true
+            url teRepoUrl
+            credentials {
+                username teRepoUser
+                password teRepoPassword
+            }
+        }
+    }
+}
+
+rootProject.name = '${{ values.project_id }}'
+include("backend")
+include("frontend")

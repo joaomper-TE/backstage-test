@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${{ values.application_name }}
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/name: ${{ values.application_name }}
+    app.kubernetes.io/part-of: ${{ values.application_name }}
+    product: ${{ values.monitoring_id }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/name: ${{ values.application_name }}
+      app.kubernetes.io/part-of: ${{ values.application_name }}
+  # the replica count is managed by the Rollout and this must be zero to be managed by the rollout
+  replicas: 0
+  template:
+    metadata:
+      name: ${{ values.application_name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "9090"
+      labels:
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/name: ${{ values.application_name }}
+        app.kubernetes.io/part-of: ${{ values.application_name }}
+        product: ${{ values.monitoring_id }}
+    spec:
+      containers:
+        - name: application
+          image: ${{ values.image_name }}
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 6
+            httpGet:
+              path: /actuator/health/liveness
+              port: 9090
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 8
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health/readiness
+              port: 9090
+            initialDelaySeconds: 25
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 8
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: actuator
+              containerPort: 9090
+              protocol: TCP
+          # Minimum Memory required by a Spring App is ~500MiB
+          resources:
+            limits:
+              cpu: 200m
+              memory: 700Mi
+            requests:
+              cpu: 200m
+              memory: 700Mi
+      imagePullSecrets:
+        - name: te-docker-reg
+      restartPolicy: Always

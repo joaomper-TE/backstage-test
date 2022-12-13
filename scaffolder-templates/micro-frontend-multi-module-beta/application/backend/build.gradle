@@ -1,0 +1,14 @@
+plugins {
+	id 'com.thousandeyes.gradle.spring-boot-convention-plugin'
+}
+
+group = 'com.thousandeyes.${{values.deployment_namespace}}'
+sourceCompatibility = JavaVersion.VERSION_11
+
+ext {
+    dockerImageName = rootProject.name
+}
+
+dependencies {
+    implementation(project(path: ":frontend", configuration: "frontendJar"))
+}

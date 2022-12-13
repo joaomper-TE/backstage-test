@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{values.project_id | dump}}
+  description: ${{values.project_description | dump}}
+  annotations:
+    github.com/project-slug: ${{ values.github_organization }}/${{ values.project_id }}
+    github.com/team-slug: ${{ values.github_organization }}/${{ values.owner }}
+    backstage.io/techdocs-ref: dir:.
+    argocd/app-selector: application-name=${{ values.project_id }}
+  tags:
+    - recommended
+    - deployment
+    - spring-boot
+spec:
+  type: deployment
+  lifecycle: experimental
+  owner: ${{values.owner | dump}}

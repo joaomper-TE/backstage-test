@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    label: kustomize-builder
+spec:
+  containers:
+    - name: kustomize-build
+      {%- if values.github_organization == "te-ee-sandbox" %}
+      image: gcr.io/te-engg-dev/jenkins-agents/kustomize-agent:4.0.5-v0.0.5
+      {%- else %}
+      image: gcr.io/te-releng-ci/jenkins-agents/kustomize-agent:4.0.5-v0.0.5
+      {%- endif %}
+      command:
+        - cat
+      tty: true
+      volumeMounts:
+        - name: te-secret
+          mountPath: /root/.ssh/
+          readOnly: true
+  volumes:
+    - name: te-secret
+      secret:
+        secretName: jenkins-te-secret
+        defaultMode: 0600
+        items:
+          - key: te_build_bot_github_id_rsa
+            path: id_rsa
+          - key: te_build_bot_github_known_hosts
+            path: known_hosts

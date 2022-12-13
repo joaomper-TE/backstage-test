@@ -1,0 +1,12 @@
+site_name: ${{values.project_id}}
+site_description: ${{values.project_description}}
+
+nav:
+  - Introduction: index.md
+# Examples of additional documentation
+# - Sub-Section:
+#   - Section Intro: subsection/intro.md
+#   - More Information: subsection/more-info.md
+
+plugins:
+  - techdocs-core

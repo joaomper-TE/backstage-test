@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: ${{ values.application_name }}
+spec:
+{%- if values.use_automated_canary %}
+  replicas: 5
+{%- else %}
+  replicas: 1
+{%- endif %}
+  revisionHistoryLimit: 3
+  workloadRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ${{ values.application_name }}
+  strategy:
+    canary:
+      stableService: ${{ values.application_name }}
+      canaryService: ${{ values.application_name }}-canary
+{%- if values.use_automated_canary %}
+      stableMetadata:
+        labels:
+          rollout_role: stable
+      canaryMetadata:
+        labels:
+          rollout_role: canary
+      analysis:
+        templates:
+          - templateName: http-success-rate
+            clusterScope: true
+        args:
+          - name: service-name
+            value: ${{ values.application_name }}
+          - name: product
+            value: ${{ values.monitoring_id }}
+      steps:
+        - setWeight: 10
+        - pause: { duration: 10m }
+        - setWeight: 20
+        - pause: { duration: 10m }
+        - setWeight: 60
+        - pause: { duration: 10m }
+{%- endif %}

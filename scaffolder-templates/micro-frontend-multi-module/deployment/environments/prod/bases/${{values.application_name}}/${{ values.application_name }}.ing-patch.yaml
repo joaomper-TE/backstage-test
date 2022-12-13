@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ${{ values.application_name }}
+  namespace: ${{ values.deployment_namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/cors-allow-origin: https://app.thousandeyes.com
+spec:
+  rules:
+    - host: app.thousandeyes.com
+      http:
+        paths:
+          - path: "/namespace/${{ values.application_name }}"
+            backend:
+              serviceName: ${{ values.application_name }}
+              servicePort: http
+    - host: static.thousandeyes.com
+      http:
+        paths:
+          - path: "/namespace/${{ values.application_name }}"
+            backend:
+              serviceName: ${{ values.application_name }}
+              servicePort: http
+    - host: static-origin.thousandeyes.com
+      http:
+        paths:
+          - path: "/namespace/${{ values.application_name }}"
+            backend:
+              serviceName: ${{ values.application_name }}
+              servicePort: http
+  tls:
+    - hosts:
+        - app.thousandeyes.com
+      secretName: ${{ values.application_name }}-tls
+    - hosts:
+        - static.thousandeyes.com
+        - static-origin.thousandeyes.com
+      secretName: ${{ values.application_name }}-static-tls

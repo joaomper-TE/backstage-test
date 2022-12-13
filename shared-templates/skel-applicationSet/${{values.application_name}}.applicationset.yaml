@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ${{ values.application_name }}
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchExpressions:
+            - key: clusterType
+              operator: In
+              values:
+                - application
+                - application-dr
+
+  template:
+    metadata:
+      name: "${{ values.application_name }}-{{metadata.labels.region}}-{{metadata.labels.cluster}}"
+      labels:
+        gitops.thousandeyes.com/image-update-enabled: "true"
+        gitops.thousandeyes.com/application-name: "${{ values.application_name }}"
+      annotations:
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: ${{ values.slack_notification_channel }}
+    spec:
+      syncPolicy:
+        automated:
+          prune: true    
+      destination:
+        namespace: ${{ values.deployment_namespace }}
+        server: "{{server}}"
+      project: ${{ values.app_project_name }}
+      source:
+        path: "environments/{{metadata.labels.environment}}/{{metadata.labels.region}}/{{metadata.labels.cluster}}"
+        repoURL: git@github.com:${{ values.github_organization }}/${{ values.application_name }}-deployment.git
+        targetRevision: main
+      info:
+        - name: gitops.thousandeyes.com/tag-regex-map
+          value: ${{ values.image_name }}:^\d+\.\d+\.\d+-[A-Fa-f0-9]+$
+        - name: gitops.thousandeyes.com/create-pull-request
+          value: "false"
+        - name: gitops.thousandeyes.com/code-repository
+          value: git@github.com:${{ values.github_organization }}/${{ values.application_name }}.git

@@ -1,0 +1,40 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: test-module
+  title: Test Module
+  description: Testing a module actions and plugins
+  tags:
+    - test
+spec:
+  owner: engg-effectiveness@thousandeyes.com
+  type: service
+  parameters:
+    - title: Test Module Project
+      description: |
+        This template is for testing purpose only and for testing new actions and plugins
+      required:
+        - application_name
+      properties:
+        application_name:
+          title: Application Name
+          type: string
+          ui:description: |
+            Name of the application. eg (some-service).Important: only lowercase alphanumeric characters and dashes may be used.  
+  steps:
+    - id: context
+      name: Load Scaffolder Context
+      action: thousandeyes:context  
+    - id: githubCommitPush
+      name: Create a Github Commit & Push
+      action: thousandeyes:github:commit
+      input:
+        repo: ${{ parameters.application_name }}
+        owner: ${{ steps.context.output.github_organization }}
+        path: .github/CODEOWNERS
+        content: ' '
+        message: 'Backstage initial commit'
+        branch: main
+        authorName: Scaffolder
+        authorEmail: engg-effectiveness@thousandeyes.com
+

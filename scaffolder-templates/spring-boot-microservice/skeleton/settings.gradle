@@ -1,0 +1,14 @@
+
+pluginManagement {
+    repositories {
+        maven {
+            url teRepoUrl
+            credentials {
+                username teRepoUser
+                password teRepoPassword
+            }
+        }
+    }
+}
+
+rootProject.name = '${{ values.project_id }}'

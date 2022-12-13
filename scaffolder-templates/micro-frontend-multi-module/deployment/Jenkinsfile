@@ -1,0 +1,39 @@
+pipeline {
+    agent {
+        kubernetes {
+          defaultContainer 'kustomize-build'
+          idleMinutes 2
+          yamlFile "build-pod.yaml"
+        }
+    }
+
+    stages {
+
+        stage('Validation') {
+            matrix {
+                axes {
+                    axis {
+                        name 'ENVIRONMENT'
+                        values 'prod', 'staging'
+                    }
+                    axis {
+                        name 'REGION_CLUSTER'
+                        values 'us-west-1/k8s2', 'us-east-1/k8s2', 'eu-central-1/eks1' 
+                    }
+                }
+
+                stages {
+                    //
+                    // run thru kustomize build to validate...
+                    //
+                    stage('kustomize') {
+                        when { changeRequest() }
+                        steps {
+                            sh '[ -d "environments/${ENVIRONMENT}/${REGION_CLUSTER}" ] && kustomize build --load-restrictor LoadRestrictionsNone --enable-alpha-plugins environments/${ENVIRONMENT}/${REGION_CLUSTER}'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

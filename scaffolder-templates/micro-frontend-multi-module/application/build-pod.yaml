@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    label: microfrontend-builder
+spec:
+  securityContext:
+    fsGroup: 1000
+  containers:
+    - name: microfrontend-builder
+      {%- if values.github_organization == "te-ee-sandbox" %}
+        {%- set registry = "te-engg-dev" %}
+      {%- else %}
+        {%- set registry = "te-releng-ci" %}
+      {%- endif %}
+      image: gcr.io/${{ registry }}/jenkins-agents/spring-boot-builder@sha256:a7e017db799db3fb1f84fba922d935253dd8659d074d4d70b7acf913f0071144
+      command:
+        - cat
+      tty: true
+      resources:
+        requests:
+          memory: "2Gi"
+          cpu: "2000m"
+        limits:
+          memory: "4Gi"
+          cpu: "4000m"
+      env:
+        - name: DOCKER_HOST
+          value: tcp://127.0.0.1:2375
+        - name: DOCKER_CONFIG
+          value: /home/jenkins/.docker
+        - name: XDG_CONFIG_HOME
+          value: /home/jenkins/agent
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=8192          
+        - name: GRADLE_ENTERPRISE_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: jenkins-te-gradle-secret
+              key: gradle_enterprise_access_key
+      envFrom:
+      - configMapRef:
+          name: jenkins-env-vars
+      volumeMounts:
+        - name: gradle-properties-vol
+          mountPath: /home/jenkins/.gradle/gradle.properties
+          subPath: gradle.properties
+        - name: dockerconfig
+          mountPath: /home/jenkins/.docker
+        - name: node-vol
+          mountPath: /home/jenkins/.npmrc
+          subPath: .npmrc7
+        - name: te-secret
+          mountPath: /home/jenkins/.ssh/
+          readOnly: true          
+    - name: dind
+      image: docker:18.06.1-ce-dind
+      args: ["dockerd", "-H tcp://localhost:2375", "-H unix:///var/run/docker.sock"]
+      securityContext:
+        privileged: true
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "2000m"
+        limits:
+          memory: "4Gi"
+          cpu: "2000m"
+      volumeMounts:
+        - name: dind-storage
+          mountPath: /var/lib/docker
+  imagePullSecrets:
+    - name: jenkins-te-docker-reg
+  volumes:
+    - name: dind-storage
+      emptyDir: {}
+    - name: dockerconfig
+      secret:
+        secretName: jenkins-te-docker-reg
+    - name: gradle-properties-vol
+      secret:
+        secretName: jenkins-te-gradle-secret
+        items:
+          - key: gradle.properties
+            path: gradle.properties
+    - name: node-vol
+      secret:
+        secretName: jenkins-te-node-secret
+        items:
+          - key: .npmrc7
+            path: .npmrc7
+    - name: te-secret
+      secret:
+        secretName: jenkins-te-secret
+        defaultMode: 0600
+        items:
+          - key: te_build_bot_github_id_rsa
+            path: id_rsa
+          - key: te_build_bot_github_known_hosts
+            path: known_hosts

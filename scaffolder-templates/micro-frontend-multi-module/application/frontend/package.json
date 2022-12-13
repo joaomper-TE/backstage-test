@@ -1,0 +1,51 @@
+{
+  "name": "${{ values.project_id }}",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "test": "vitest",
+    "test.ci": "vitest run --coverage",
+    "coverage": "vitest run --coverage",
+    "prettier": "prettier -c 'src/**/*.{js,ts,vue}'",
+    "prettier:fix": "prettier -w 'src/**/*.{js,ts,vue}'"
+  },
+  "dependencies": {
+    "vue": "^3.2.37"
+  },
+  "devDependencies": {
+    "@te/eslint-config-thousandeyes": "^2.2.0",
+    "@vitejs/plugin-vue": "^3.0.0",
+    "@vue/test-utils": "^2.0.2",
+    "c8": "^7.12.0",
+    "eslint": "^8.20.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-vue": "^9.3.0",
+    "jsdom": "^20.0.0",
+    "prettier": "2.7.1",
+    "vite": "^3.0.0",
+    "vitest": "^0.18.1"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "@babel/eslint-parser"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}

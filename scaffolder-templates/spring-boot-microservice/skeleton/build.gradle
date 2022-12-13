@@ -1,0 +1,28 @@
+buildscript {
+	repositories {
+        maven {
+            url teRepoUrl
+            credentials {
+                username teRepoUser
+                password teRepoPassword
+            }
+        }
+    }
+	dependencies {
+		classpath 'com.thousandeyes:gradle-plugins:4.1.+'
+	}
+}
+
+plugins {
+	id 'com.thousandeyes.gradle.spring-boot-convention-plugin' version '4.1.+'
+}
+
+group = 'com.thousandeyes'
+sourceCompatibility = JavaVersion.VERSION_11
+
+apply plugin: 'com.thousandeyes.gradle.te-release'
+
+teRelease {
+    releaseBuildTasks = ['publish']
+}
+

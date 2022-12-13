@@ -1,0 +1,7 @@
+site_name: 'Spring Boot Deployment'
+
+nav:
+  - 'Spring Boot Deployment': spring-boot-deployment.md
+
+plugins:
+  - techdocs-core

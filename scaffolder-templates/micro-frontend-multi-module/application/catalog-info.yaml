@@ -1,0 +1,23 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.project_id | dump }}
+  {%- if values.project_description %}
+  description: ${{ values.project_description | dump }}
+  {%- endif %}
+  annotations:
+    argocd/app-selector: gitops.thousandeyes.com%2Fapplication-name=${{ values.project_id }}
+    backstage.io/techdocs-ref: dir:.
+    cicd.thousandeyes.com/release-info: "true"
+    github.com/project-slug: ${{ values.github_organization }}/${{ values.project_id }}
+    github.com/team-slug: thousandeyes/${{ values.owner }}
+    jenkins.io/job-full-name: ${{ values.github_organization }}/${{ values.project_id }}
+    sonarqube.org/project-key: ${{ values.project_id }}
+  tags:
+    - recommended
+    - java
+    - spring-boot
+spec:
+  type: service
+  lifecycle: experimental
+  owner: ${{ values.owner | dump }}

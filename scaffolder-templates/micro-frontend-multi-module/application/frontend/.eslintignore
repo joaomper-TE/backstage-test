@@ -1,0 +1,12 @@
+build/
+config/
+node_modules/
+
+babel.config.js
+jest.config.js
+postcss.config.js
+setupTests.js
+vue.config.js
+cleanCoverageReport.js
+
+src/common/settings-labels/*
